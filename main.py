@@ -1,6 +1,7 @@
 """data analytics team project analyzing ai data"""
 
 from datetime import datetime
+from pathlib import Path
 from scipy import stats
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -9,22 +10,22 @@ import numpy as np
 
 START_DATE = "2013-1-1"
 
-training_compute = pd.read_csv(
-    "/home/nox/coding/data_analytics_team_project/artificial-intelligence-training-computation.csv"
-)
+project_dir = Path("/home/nox/coding/data_analytics_team_project/")
+
+training_compute_path = project_dir / "artificial-intelligence-training-computation.csv"
+training_compute = pd.read_csv(training_compute_path)
 training_compute = training_compute.sort_values(by="Day")
 
-global_investment = pd.read_csv(
-    "/home/nox/coding/data_analytics_team_project/Global private investment in generative AI - Sheet1.csv"
+global_investment_path = (
+    project_dir / "Global private investment in generative AI - Sheet1.csv"
 )
+global_investment = pd.read_csv(global_investment_path)
 
-moores_law = pd.read_csv(
-    "/home/nox/coding/data_analytics_team_project/transistors-per-microprocessor.csv"
-)
+moores_law_path = project_dir / "transistors-per-microprocessor.csv"
+moores_law = pd.read_csv(moores_law_path)
 
-semiconductor_ppi = pd.read_csv(
-    "/home/nox/coding/data_analytics_team_project/PCU3344133344134.csv"
-)
+semiconductor_ppi_path = project_dir / "PCU3344133344134.csv"
+semiconductor_ppi = pd.read_csv(semiconductor_ppi_path)
 
 
 def training_scatter():
@@ -65,7 +66,9 @@ def training_regplot():
     plt.xlabel("Unix Timestamp")
     plt.show()
 
+
 def training_linregress():
+    """linear regression for training compute"""
     tc = training_compute.copy()
     tc["Day"] = (
         pd.to_datetime(tc["Day"], infer_datetime_format=True).astype("int64") // 10**9
@@ -73,19 +76,25 @@ def training_linregress():
     start_time = datetime.strptime(START_DATE, "%Y-%m-%d").timestamp()
     tc = tc[tc["Day"] >= start_time]
 
-    slope, intercept, r_value, p_value, std_err = stats.linregress(tc["Day"].tolist(), tc["Training computation (petaFLOP)"].tolist())
+    slope, intercept, _, _, _ = stats.linregress(
+        tc["Day"].tolist(), tc["Training computation (petaFLOP)"].tolist()
+    )
 
     return (slope, intercept)
 
+
 def global_investment_bar():
+    """bar chart for global gai investment"""
     sns.barplot(x="Year", y="Total investment (in billions)", data=global_investment)
     plt.show()
 
+
 def moores_law_regplot():
+    """regplot for moores law"""
     ml = moores_law.copy()
     ml["log_transistors"] = np.log10(ml["Transistors per microprocessor"])
 
-    sns.regplot(x="Year",y="log_transistors",data=ml)
+    sns.regplot(x="Year", y="log_transistors", data=ml)
 
     ax = plt.gca()
     yticks = ax.get_yticks()
@@ -93,21 +102,33 @@ def moores_law_regplot():
     plt.ylabel("Transistors per microprocessor")
     plt.show()
 
+
 def semiconductor_ppi_linregress():
+    """linear regression for semiconductor ppi"""
     sppi = semiconductor_ppi.copy()
     sppi = sppi.dropna()
     sppi["observation_date"] = (
-        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype("int64") // 10**9
+        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype(
+            "int64"
+        )
+        // 10**9
     )
 
-    slope, intercept, r_value, p_value, std_err = stats.linregress(sppi["observation_date"].tolist(), sppi["PCU3344133344134"].tolist())
+    slope, intercept, _, _, _ = stats.linregress(
+        sppi["observation_date"].tolist(), sppi["PCU3344133344134"].tolist()
+    )
 
     return (slope, intercept)
 
+
 def semiconductor_ppi_regplot():
+    """regplot for semiconductor ppi"""
     sppi = semiconductor_ppi.copy()
     sppi["observation_date"] = (
-        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype("int64") // 10**9
+        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype(
+            "int64"
+        )
+        // 10**9
     )
 
     sns.regplot(x="observation_date", y="PCU3344133344134", data=sppi)
@@ -118,8 +139,8 @@ def semiconductor_ppi_regplot():
 
 
 print(training_linregress())
-# training_regplot()
-# global_investment_bar()
-# moores_law_regplot()
-# print(semiconductor_ppi_linregress())
-# semiconductor_ppi_regplot()
+training_regplot()
+global_investment_bar()
+moores_law_regplot()
+print(semiconductor_ppi_linregress())
+semiconductor_ppi_regplot()
