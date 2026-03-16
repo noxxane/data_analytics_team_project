@@ -1,7 +1,7 @@
 """data analytics team project analyzing ai data"""
 
 import platform
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -9,6 +9,7 @@ import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib.ticker import FixedLocator
 from scipy import stats
 from scipy.optimize import curve_fit
 
@@ -43,7 +44,7 @@ def training_scatter():
     _ = sns.scatterplot(
         x="Entity", y="Training computation (petaFLOP)", data=training_compute
     )
-    plt.show()
+    plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
 def training_relplot():
@@ -52,11 +53,11 @@ def training_relplot():
         x="Entity", y="Training computation (petaFLOP)", data=training_compute
     )
     _ = g.set(xscale="log", yscale="log")
-    plt.show()
+    plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
-def timestamp_to_date(x, pos):
-    return datetime.utcfromtimestamp(x).strftime("%Y-%m-%d")
+def timestamp_to_date(x: float, _: int | None) -> str:
+    return datetime.fromtimestamp(x, UTC).strftime("%Y-%m-%d")
 
 
 def training_regplot():
@@ -67,46 +68,41 @@ def training_regplot():
     for start_date in start_dates:
         tc = training_compute.copy()
 
-        tc["Day"] = (
-            pd.to_datetime(tc["Day"], infer_datetime_format=True).astype("int64")
-            // 10**9
-        )
+        tc["Day"] = pd.to_datetime(tc["Day"]).astype("int64") // 10**9
         start_time = datetime.strptime(start_date, "%Y-%m-%d").timestamp()
         tc = tc[tc["Day"] >= start_time]
 
         tc["log_compute"] = np.log10(tc["Training computation (petaFLOP)"])
 
-        _ = sns.regplot(x="Day", y="log_compute", data=tc, scatter=True)
+        ax = sns.regplot(x="Day", y="log_compute", data=tc, scatter=True)
 
-        ax = plt.gca()
         yticks = ax.get_yticks()
         ax.xaxis.set_major_formatter(ticker.FuncFormatter(timestamp_to_date))
-        plt.xticks(rotation=45, ha="right")
+        _ = plt.xticks(rotation=45, ha="right")  # pyright: ignore[reportUnknownMemberType]
         plt.tight_layout()
 
-        ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])
-        plt.ylabel("Training computation (petaFLOP)")
-        plt.xlabel("Date")
-        plt.show()
+        ax.yaxis.set_major_locator(FixedLocator(yticks.tolist()))  # pyright: ignore[reportAny]
+        _ = ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])  # pyright: ignore[reportUnknownMemberType, reportAny]
+        _ = plt.ylabel("Training computation (petaFLOP)")  # pyright: ignore[reportUnknownMemberType]
+        _ = plt.xlabel("Date")  # pyright: ignore[reportUnknownMemberType]
+        plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
 def training_linregress():
     """linear regression for training compute"""
     tc = training_compute.copy()
-    tc["Day"] = (
-        pd.to_datetime(tc["Day"], infer_datetime_format=True).astype("int64") // 10**9
-    )
+    tc["Day"] = pd.to_datetime(tc["Day"]).astype("int64") // 10**9
     start_time = datetime.strptime(START_DATE, "%Y-%m-%d").timestamp()
     tc = tc[tc["Day"] >= start_time]
 
-    slope, intercept, _, _, _ = stats.linregress(
+    slope, intercept, _, _, _, _ = stats.linregress(
         tc["Day"].tolist(), tc["Training computation (petaFLOP)"].tolist()
     )
 
     return (slope, intercept)
 
 
-def exponential_model(x, a, b):
+def exponential_model(x: np.ndarray, a: np.floating, b: np.floating) -> np.ndarray:
     return a * np.exp(b * x)
 
 
@@ -119,48 +115,33 @@ def global_investment_bar():
     params, _ = curve_fit(exponential_model, x, y, p0=[1, 0.5])
     a, b = params
 
-    x_fit_exp = np.linspace(x_indexed.min(), x_indexed.max(), 300)
-    y_fit_exp = exponential_model(x_fit_exp, a, b)
+    x_fit_exp = np.linspace(x_indexed.min(), x_indexed.max(), 300)  # pyright: ignore[reportUnknownVariableType, reportAny]
+    y_fit_exp = exponential_model(x_fit_exp, a, b)  # pyright: ignore[reportUnknownArgumentType]
 
     coeffs = np.polyfit(x_indexed, y, deg=2)
     poly = np.poly1d(coeffs)
 
-    x_fit_poly = np.linspace(x_indexed.min(), x_indexed.max(), 300)
-    y_fit_poly = poly(x_fit_poly)
+    x_fit_poly = np.linspace(x_indexed.min(), x_indexed.max(), 300)  # pyright: ignore[reportUnknownVariableType, reportAny]
+    y_fit_poly = poly(x_fit_poly)  # pyright: ignore[reportAny, reportUnknownArgumentType]
 
-    _, ax = plt.subplots()
-    sns.barplot(x=x, y=y, ax=ax, color="steelblue", alpha=0.6)
-    ax.plot(
-        x_fit_exp,
+    _, ax = plt.subplots()  # pyright: ignore[reportUnknownMemberType]
+    _ = sns.barplot(x=x, y=y, ax=ax, alpha=0.6)
+    _ = ax.plot(  # pyright: ignore[reportUnknownMemberType]
+        x_fit_exp,  # pyright: ignore[reportUnknownArgumentType]
         y_fit_exp,
-        color="crimson",
         linewidth=2.5,
         label=f"Exp fit: y = {a:.2f} * e^({b:.2f}x)",
     )
-    ax.plot(
-        x_fit_poly,
-        y_fit_poly,
-        color="darkorange",
+    _ = ax.plot(  # pyright: ignore[reportUnknownMemberType]
+        x_fit_poly,  # pyright: ignore[reportUnknownArgumentType]
+        y_fit_poly,  # pyright: ignore[reportAny]
         linewidth=2.5,
         label=f"Poly fit(deg=2): y = {coeffs[0]:.2f}x^2 + {coeffs[1]:.2f}x + {coeffs[2]:.2f}",
     )
 
-    ax.legend()
+    _ = ax.legend()  # pyright: ignore[reportUnknownMemberType]
     plt.tight_layout()
-    plt.show()
-
-
-def global_investment_bar_poly():
-    x = np.array(global_investment["Year"].tolist())
-    y = np.array(global_investment["Total investment (in billions)"].tolist())
-
-    x_indexed = np.arange(len(x))
-
-    coeffs = np.polyfit(x_indexed, y, deg=2)
-    poly = np.poly1d(coeffs)
-
-    x_fit = np.linspace(x_indexed.min(), x_indexed.max(), 300)
-    y_fit = poly(x_fit)
+    plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
 def moores_law_regplot():
@@ -168,13 +149,14 @@ def moores_law_regplot():
     ml = moores_law.copy()
     ml["log_transistors"] = np.log10(ml["Transistors per microprocessor"])
 
-    _ = sns.regplot(x="Year", y="log_transistors", data=ml)
+    ax = sns.regplot(x="Year", y="log_transistors", data=ml)
 
-    ax = plt.gca()
     yticks = ax.get_yticks()
-    ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])
-    plt.ylabel("Transistors per microprocessor")
-    plt.show()
+
+    ax.yaxis.set_major_locator(FixedLocator(yticks.tolist()))  # pyright: ignore[reportAny]
+    _ = ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])  # pyright: ignore[reportUnknownMemberType, reportAny]
+    _ = plt.ylabel("Transistors per microprocessor")  # pyright: ignore[reportUnknownMemberType]
+    plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
 def semiconductor_ppi_linregress():
@@ -182,13 +164,10 @@ def semiconductor_ppi_linregress():
     sppi = semiconductor_ppi.copy()
     sppi = sppi.dropna()
     sppi["observation_date"] = (
-        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype(
-            "int64"
-        )
-        // 10**9
+        pd.to_datetime(sppi["observation_date"]).astype("int64") // 10**9
     )
 
-    slope, intercept, _, _, _ = stats.linregress(
+    slope, intercept, _, _, _, _ = stats.linregress(
         sppi["observation_date"].tolist(), sppi["PCU3344133344134"].tolist()
     )
 
@@ -199,20 +178,17 @@ def semiconductor_ppi_regplot():
     """regplot for semiconductor ppi"""
     sppi = semiconductor_ppi.copy()
     sppi["observation_date"] = (
-        pd.to_datetime(sppi["observation_date"], infer_datetime_format=True).astype(
-            "int64"
-        )
-        // 10**9
+        pd.to_datetime(sppi["observation_date"]).astype("int64") // 10**9
     )
 
     ax = sns.regplot(x="observation_date", y="PCU3344133344134", data=sppi)
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(timestamp_to_date))
-    plt.xticks(rotation=45, ha="right")
+    _ = plt.xticks(rotation=45, ha="right")  # pyright: ignore[reportUnknownMemberType]
     plt.tight_layout()
 
-    plt.ylabel("Index Jun 1981=100")
-    plt.xlabel("Date")
-    plt.show()
+    _ = plt.ylabel("Index Jun 1981=100")  # pyright: ignore[reportUnknownMemberType]
+    _ = plt.xlabel("Date")  # pyright: ignore[reportUnknownMemberType]
+    plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
 print(training_linregress())
