@@ -1,0 +1,2 @@
+- [ ] correlation between investment and training compute
+- [ ] correlation between cost of transistors and moore's law

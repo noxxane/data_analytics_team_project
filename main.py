@@ -64,7 +64,8 @@ def training_regplot():
     """regplot of training compute"""
     first_start_date = "1971-1-1"
     second_start_date = "2011-1-1"
-    start_dates = [first_start_date, second_start_date]
+    third_start_date = "2019-1-1"
+    start_dates = [first_start_date, second_start_date, third_start_date]
     for start_date in start_dates:
         tc = training_compute.copy()
 
@@ -85,6 +86,14 @@ def training_regplot():
         _ = ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])  # pyright: ignore[reportUnknownMemberType, reportAny]
         _ = plt.ylabel("Training computation (petaFLOP)")  # pyright: ignore[reportUnknownMemberType]
         _ = plt.xlabel("Date")  # pyright: ignore[reportUnknownMemberType]
+
+        if start_date == "1971-1-1":
+            _ = plt.savefig(project_dir / "paper" / "figs" / "fig1_1.png")  # pyright: ignore[reportUnknownMemberType]
+        elif start_date == "2011-1-1":
+            _ = plt.savefig(project_dir / "paper" / "figs" / "fig1_2.png")  # pyright: ignore[reportUnknownMemberType]
+        elif start_date == "2019-1-1":
+            _ = plt.savefig(project_dir / "paper" / "figs" / "fig1_3.png")  # pyright: ignore[reportUnknownMemberType]
+
         plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
@@ -141,6 +150,9 @@ def global_investment_bar():
 
     _ = ax.legend()  # pyright: ignore[reportUnknownMemberType]
     plt.tight_layout()
+
+    _ = plt.savefig(project_dir / "paper" / "figs" / "fig2.png")  # pyright: ignore[reportUnknownMemberType]
+
     plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
@@ -156,6 +168,9 @@ def moores_law_regplot():
     ax.yaxis.set_major_locator(FixedLocator(yticks.tolist()))  # pyright: ignore[reportAny]
     _ = ax.set_yticklabels([f"$10^{{{v:.0f}}}$" for v in yticks])  # pyright: ignore[reportUnknownMemberType, reportAny]
     _ = plt.ylabel("Transistors per microprocessor")  # pyright: ignore[reportUnknownMemberType]
+
+    _ = plt.savefig(project_dir / "paper" / "figs" / "fig3.png")  # pyright: ignore[reportUnknownMemberType]
+
     plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
@@ -188,12 +203,15 @@ def semiconductor_ppi_regplot():
 
     _ = plt.ylabel("Index Jun 1981=100")  # pyright: ignore[reportUnknownMemberType]
     _ = plt.xlabel("Date")  # pyright: ignore[reportUnknownMemberType]
+
+    _ = plt.savefig(project_dir / "paper" / "figs" / "fig4.png")  # pyright: ignore[reportUnknownMemberType]
+
     plt.show()  # pyright: ignore[reportUnknownMemberType]
 
 
-print(training_linregress())
+# print(training_linregress())
 training_regplot()
 global_investment_bar()
 moores_law_regplot()
-print(semiconductor_ppi_linregress())
+# print(semiconductor_ppi_linregress())
 semiconductor_ppi_regplot()
